@@ -11,6 +11,9 @@
     <MauiXaml Update="FigurePage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="Lumememm.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="RGBColorPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
@@ -18,6 +21,9 @@
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="TextPage.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="TripsTrapsTrull.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="ValgusfoorPage.xaml">

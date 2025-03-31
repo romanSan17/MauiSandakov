@@ -7,7 +7,9 @@ public partial class StartPage : ContentPage
         new TextPage(0),
         new FigurePage(1),
         new ValgusfoorPage(),
-        new RGBColorPage()
+        new RGBColorPage(),
+        new Lumememm(),
+        new Trips()
     };
 
     public List<string> tekstid = new List<string>
@@ -15,7 +17,9 @@ public partial class StartPage : ContentPage
         "Tee lahti TekstPage",
         "Tee lahti FigurePage",
         "Tee lahti ValgusfoorPage",
-        "Tee lahti RGB"
+        "Tee lahti RGB",
+        "Tee lahti Lumememm",
+        "Tee lahti Trips Traps Trull"
     };
 
     ScrollView sv;
