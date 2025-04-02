@@ -2,32 +2,40 @@
 
 public partial class Trips : ContentPage
 {
-    private Button[,] gridButtons = new Button[3, 3]; // Игровое поле 3x3
-    private bool isPlayerOneTurn = true; // Кто ходит первым
-    private string playerOneSymbol = "X"; // Символ игрока 1
-    private string playerTwoSymbol = "O"; // Символ игрока 2
-    private int moveCount = 0; // Счётчик ходов
+    private Button[,] gridButtons = new Button[3, 3];
+    private bool isPlayerOneTurn = true;
+    private string playerOneSymbol = "X";
+    private string playerTwoSymbol = "O";
+    private int moveCount = 0;
+    private Grid gameGrid;
+    private StackLayout controlButtons;
+    private bool isPlayingWithBot = false;
+    private bool isDarkTheme = false;
 
     public Trips()
     {
-        
         CreateGameGrid();
-        
+        controlButtons = CreateControlButtons();
+        UpdateTheme();
+
+        Content = new VerticalStackLayout
+        {
+            Children = { gameGrid, controlButtons },
+            Spacing = 20,
+            Padding = new Thickness(10)
+        };
     }
 
-    // Создание игрового поля
     private void CreateGameGrid()
     {
-        var grid = new Grid();
+        gameGrid = new Grid();
 
-        // Создаем 3 строки и 3 столбца
         for (int i = 0; i < 3; i++)
         {
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            gameGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            gameGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         }
 
-        // Добавление кнопок в сетку
         for (int row = 0; row < 3; row++)
         {
             for (int col = 0; col < 3; col++)
@@ -36,72 +44,81 @@ public partial class Trips : ContentPage
                 {
                     BackgroundColor = Colors.LightGray,
                     FontSize = 24,
-                    TextColor = Colors.Black
+                    TextColor = Colors.Black,
+                    Text = " "
                 };
-                button.Clicked += (sender, e) => OnCellClicked(row, col);
+                int r = row, c = col;
+                button.Clicked += (sender, e) => OnCellClicked(r, c);
 
-                // Указываем строки и столбцы для каждой кнопки
                 Grid.SetRow(button, row);
                 Grid.SetColumn(button, col);
 
-                grid.Children.Add(button);
+                gameGrid.Children.Add(button);
                 gridButtons[row, col] = button;
             }
         }
-
-        // Устанавливаем сетку в качестве контента
-        Content = grid;
     }
 
-    // Создание кнопок управления игрой
     private StackLayout CreateControlButtons()
     {
-        var startNewGameButton = new Button
-        {
-            Text = "Новая игра",
-            BackgroundColor = Colors.Green,
-            TextColor = Colors.White
-        };
+        var startNewGameButton = new Button { Text = "Uus mäng", BackgroundColor = Colors.Green, TextColor = Colors.White };
         startNewGameButton.Clicked += (sender, e) => ResetGame();
 
-        var changeSymbolsButton = new Button
-        {
-            Text = "Сменить символы",
-            BackgroundColor = Colors.Yellow,
-            TextColor = Colors.Black
-        };
+        var changeSymbolsButton = new Button { Text = "Muutke tähemärki", BackgroundColor = Colors.Yellow, TextColor = Colors.Black };
         changeSymbolsButton.Clicked += (sender, e) => SwapSymbols();
+
+        var playWithBotButton = new Button { Text = "Mängi koos botiga / sõbraga", BackgroundColor = Colors.Blue, TextColor = Colors.White };
+        playWithBotButton.Clicked += (sender, e) => ToggleBotMode();
+
+        var themeButton = new Button { Text = "Muuda teemat", BackgroundColor = Colors.Purple, TextColor = Colors.White };
+        themeButton.Clicked += (sender, e) => ToggleTheme();
 
         return new StackLayout
         {
-            Children = { startNewGameButton, changeSymbolsButton },
-            Padding = new Thickness(10),
+            Children = { startNewGameButton, changeSymbolsButton, playWithBotButton, themeButton },
             Spacing = 10
         };
     }
 
-    // Обработчик клика по ячейке
     private void OnCellClicked(int row, int col)
     {
-        if (gridButtons[row, col].Text != "") return; // Если ячейка уже занята
+        if (gridButtons[row, col].Text.Trim() != "") return;
 
-        // Отображаем символ игрока в ячейке
         gridButtons[row, col].Text = isPlayerOneTurn ? playerOneSymbol : playerTwoSymbol;
-
-        // Переходим к следующему ходу
         isPlayerOneTurn = !isPlayerOneTurn;
         moveCount++;
 
         CheckGameStatus();
+
+        if (isPlayingWithBot && !isPlayerOneTurn)
+        {
+            BotMove();
+        }
     }
 
-    // Проверка состояния игры
+    private void BotMove()
+    {
+        Random rnd = new Random();
+        while (true)
+        {
+            int row = rnd.Next(0, 3);
+            int col = rnd.Next(0, 3);
+            if (gridButtons[row, col].Text.Trim() == "")
+            {
+                gridButtons[row, col].Text = playerTwoSymbol;
+                isPlayerOneTurn = true;
+                moveCount++;
+                CheckGameStatus();
+                break;
+            }
+        }
+    }
+
     private void CheckGameStatus()
     {
-        // Проверка на победу по строкам, столбцам и диагоналям
         for (int i = 0; i < 3; i++)
         {
-            if (gridButtons[i, 0].Text != "" &&
+            if (gridButtons[i, 0].Text.Trim() != "" &&
                 gridButtons[i, 0].Text == gridButtons[i, 1].Text &&
                 gridButtons[i, 1].Text == gridButtons[i, 2].Text)
             {
@@ -109,7 +126,7 @@ public partial class Trips : ContentPage
                 return;
             }
 
-            if (gridButtons[0, i].Text != "" &&
+            if (gridButtons[0, i].Text.Trim() != "" &&
                 gridButtons[0, i].Text == gridButtons[1, i].Text &&
                 gridButtons[1, i].Text == gridButtons[2, i].Text)
             {
@@ -118,8 +135,7 @@ public partial class Trips : ContentPage
             }
         }
 
-        // Проверка на победу по диагоналям
-        if (gridButtons[0, 0].Text != "" &&
+        if (gridButtons[0, 0].Text.Trim() != "" &&
             gridButtons[0, 0].Text == gridButtons[1, 1].Text &&
             gridButtons[1, 1].Text == gridButtons[2, 2].Text)
         {
@@ -127,7 +143,7 @@ public partial class Trips : ContentPage
             return;
         }
 
-        if (gridButtons[0, 2].Text != "" &&
+        if (gridButtons[0, 2].Text.Trim() != "" &&
             gridButtons[0, 2].Text == gridButtons[1, 1].Text &&
             gridButtons[1, 1].Text == gridButtons[2, 0].Text)
         {
@@ -135,49 +151,51 @@ public partial class Trips : ContentPage
             return;
         }
 
-        // Если все клетки заняты и нет победителя — ничья
         if (moveCount == 9)
         {
-            ShowGameResult("Ничья");
+            ShowGameResult("Tie");
         }
     }
 
-    // Показать результат игры
     private async void ShowGameResult(string winner)
     {
-        string message = winner == "Ничья" ? "Ничья! Хотите сыграть снова?" : $"{winner} победил! Хотите сыграть снова?";
-        bool playAgain = await DisplayAlert("Игра завершена", message, "Да", "Нет");
-
-        if (playAgain)
-        {
-            ResetGame();
-        }
-        else
-        {
-            // Используем PopAsync() для закрытия текущей страницы и возврата на предыдущую
-            await Navigation.PopAsync();
-        }
+        string message = winner == "Tie" ? "Tie! Kas sa tahad uuesti mängida?" : $"{winner} võitis! Kas sa tahad uuesti mängida?";
+        bool playAgain = await DisplayAlert("Mäng läbi", message, "Jah", "Ei");
+        if (playAgain) ResetGame();
     }
 
-    // Сбросить игру
     private void ResetGame()
     {
         moveCount = 0;
         isPlayerOneTurn = true;
-
-        foreach (var button in gridButtons)
-        {
-            button.Text = "";
-        }
+        foreach (var button in gridButtons) button.Text = " ";
     }
 
-    // Сменить символы игроков
     private void SwapSymbols()
     {
-        var temp = playerOneSymbol;
-        playerOneSymbol = playerTwoSymbol;
-        playerTwoSymbol = temp;
-
+        (playerOneSymbol, playerTwoSymbol) = (playerTwoSymbol, playerOneSymbol);
         ResetGame();
+    }
+
+    private void ToggleBotMode()
+    {
+        isPlayingWithBot = !isPlayingWithBot;
+        ResetGame();
+    }
+
+    private void ToggleTheme()
+    {
+        isDarkTheme = !isDarkTheme;
+        UpdateTheme();
+    }
+
+    private void UpdateTheme()
+    {
+        BackgroundColor = isDarkTheme ? Colors.Black : Colors.White;
+        foreach (var button in gridButtons)
+        {
+            button.BackgroundColor = isDarkTheme ? Colors.DarkGray : Colors.LightGray;
+            button.TextColor = isDarkTheme ? Colors.White : Colors.Black;
+        }
     }
 }
